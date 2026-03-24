@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <title>食物人格测试 | Food Personality</title>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap');
+
+        :root {
+            --bg-paper: #f3eee1;
+            --ink-black: #1a1a1a;
+            --accent-orange: #f97316;
+            --accent-blue: #3b82f6;
+            --accent-yellow: #fbbf24;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-paper);
+            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+            color: var(--ink-black);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 16px;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        #page-start, #page-test, #page-result {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--bg-paper);
+            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+            min-height: 100%;
+            z-index: 10;
+            display: none;
+        }
+        
+        #page-start {
+            display: block;
+            z-index: 20;
+        }
+        
+        #page-test.active {
+            display: block;
+            z-index: 30;
+        }
+        
+        #page-result.active {
+            display: block;
+            z-index: 40;
+            position: relative;
+            overflow-y: auto;
+            height: auto;
+            max-height: none;
+        }
+
+        .title {
+            font-size: 26px;
+            text-align: center;
+            color: #ea580c;
+            margin-bottom: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .title {
+                font-size: 40px;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 2px solid #222;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 2px solid #222;
+            background: white;
+            font-size: 16px;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
+        }
+
+        .flex {
+            display: flex;
+        }
+        .justify-between {
+            justify-content: space-between;
+        }
+        .items-end {
+            align-items: flex-end;
+        }
+        .items-center {
+            align-items: center;
+        }
+        .justify-center {
+            justify-content: center;
+        }
+        .flex-wrap {
+            flex-wrap: wrap;
+        }
+        .flex-1 {
+            flex: 1;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-left {
+            text-align: left;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .opacity-50 {
+            opacity: 0.5;
+        }
+        .cursor-not-allowed {
+            cursor: not-allowed;
+        }
+
+        .option-item {
+            margin-bottom: 10px;
+            padding: 12px;
+            border: 2px solid var(--ink-black);
+            border-radius: 10px;
+            background: white;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 4px 4px 0px var(--ink-black);
+            width: 100%;
+            word-wrap: break-word;
+            touch-action: manipulation;
+            cursor: pointer;
+            text-align: left;
+        }
+        
+        .option-item:hover {
+            background-color: var(--accent-yellow);
+            transform: translate(-2px, -2px) rotate(-1deg);
+            box-shadow: 6px 6px 0px var(--ink-black);
+        }
+        
+        .option-selected {
+            background-color: var(--accent-orange) !important;
+            color: white !important;
+            transform: scale(0.98);
+            box-shadow: 2px 2px 0px var(--ink-black) !important;
+            transition: all 0.15s ease;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        
+        .progress-bar-bg {
+            height: 16px;
+            background: #e5e7eb;
+            border: 2px solid var(--ink-black);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        #progress {
+            background: repeating-linear-gradient(45deg, var(--accent-orange), var(--accent-orange) 10px, #fb923c 10px, #fb923c 20px);
+            transition: width 0.4s ease;
+            height: 100%;
+        }
+
+        .progress-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #6b7280;
+            margin-bottom: 4px;
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        
+        .progress-number {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--accent-orange);
+            background: #fff;
+            padding: 0 4px;
+            border-radius: 2px;
+            border: 1px solid #ddd;
+        }
+
+        .title-font {
+            font-family: 'ZCOOL KuaiLe', cursive;
+        }
+        
+        .person-name {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            font-weight: 900 !important;
+            letter-spacing: 1px !important;
+        }
+
+        .btn-action {
+            border: 2px solid var(--ink-black);
+            box-shadow: 4px 4px 0px var(--ink-black);
+            transition: all 0.1s;
+            width: 100%;
+            touch-action: manipulation;
+            cursor: pointer;
+            font-size: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-action:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px var(--ink-black);
+        }
+        
+        .dim-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--accent-yellow);
+            border: 1px solid var(--ink-black);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .person-card {
+            min-width: 120px;
+            padding: 10px 12px !important;
+            z-index: 10;
+            margin: 5px auto;
+            display: inline-block;
+            transform-origin: center center;
+        }
+        
+        .person-title {
+            font-size: 12px !important;
+            font-weight: 900 !important;
+            margin-bottom: 4px !important;
+            opacity: 1 !important;
+            color: white !important;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.5) !important;
+            letter-spacing: 0.5px !important;
+        }
+        
+        .person-name {
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            line-height: 1.2 !important;
+            margin: 4px 0 !important;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.3) !important;
+            color: white !important;
+            letter-spacing: 1px !important;
+        }
+        
+        .person-dim {
+            font-size: 10px !important;
+            opacity: 1 !important;
+            font-weight: 700 !important;
+            color: white !important;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.5) !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        }
+        
+        .main-person-card {
+            background-color: var(--accent-orange) !important;
+        }
+        
+        .sub-person-card {
+            background-color: #fb923c !important;
+        }
+
+        .magic-section {
+            background: linear-gradient(135deg, #fff7ed, #ffedd5);
+            border: 2px solid var(--ink-black);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 16px 0;
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+        
+        .magic-title {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 20px;
+            color: var(--accent-orange);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .magic-title i {
+            margin-right: 8px;
+        }
+        
+        .magic-item {
+            margin-bottom: 12px;
+            padding-left: 0;
+            border-left: none;
+        }
+        
+        .magic-item-title {
+            font-weight: bold;
+            color: #c2410c;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+        
+        .magic-item-desc {
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+        
+        .magic-strength {
+            border-left: none;
+            padding-left: 0;
+            margin-bottom: 16px;
+        }
+        
+        .magic-improve {
+            border-left: none;
+            padding-left: 0;
+        }
+
+        .radar-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            margin: 10px 0;
+            min-height: 300px;
+            z-index: 1;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -ms-transform: translateZ(0);
+        }
+
+        #radar {
+            width: 100% !important;
+            height: 100% !important;
+            display: block !important;
+            position: relative !important;
+            z-index: 2;
+            min-height: 300px;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -ms-backface-visibility: hidden;
+        }
+
+        .mt-10 {
+            margin-top: 40px;
+        }
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+        .mb-8 {
+            margin-bottom: 32px;
+        }
+        .mb-10 {
+            margin-bottom: 40px;
+        }
+        .gap-4 {
+            gap: 16px;
+        }
+        .space-y-4 > * {
+            margin-bottom: 16px;
+        }
+        .space-y-6 > * {
+            margin-bottom: 24px;
+        }
+        .space-y-8 > * {
+            margin-bottom: 32px;
+        }
+
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 5px;
+                font-size: 14px;
+                overflow-y: auto;
+            }
+            
+            .container {
+                padding: 10px;
+                max-width: 100%;
+            }
+            
+            #page-start, #page-test {
+                padding: 10px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            #page-result.active {
+                padding: 10px;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+                height: auto !important;
+                position: relative !important;
+            }
+            
+            #page-start {
+                margin-top: 10px !important;
+            }
+            
+            #page-start .card {
+                padding: 15px 10px !important;
+                margin-top: 10px;
+                margin-bottom: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem !important;
+                text-align: center;
+                line-height: 1.2;
+                margin-bottom: 15px !important;
+            }
+            
+            #page-test .card {
+                padding: 10px !important;
+                margin-bottom: 20px;
+            }
+            
+            .flex.justify-between.items-end {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 10px;
+                margin-bottom: 15px !important;
+            }
+            
+            .progress-bar-container.w-2/3 {
+                width: 100% !important;
+            }
+            
+            #q-text {
+                font-size: 16px !important;
+                line-height: 1.4;
+                margin-bottom: 15px !important;
+                min-height: auto !important;
+            }
+            
+            #page-result .card {
+                padding: 15px !important;
+                padding-top: 20px !important;
+                margin-bottom: 20px;
+                overflow: visible;
+                position: relative;
+            }
+            
+            h2.title-font {
+                font-size: 1.6rem !important;
+                margin-top: 10px;
+                line-height: 1.2;
+            }
+            
+            .btn-action {
+                font-size: 16px !important;
+                padding: 12px 8px !important;
+                min-height: 48px;
+            }
+            
+            .option-item {
+                font-size: 15px;
+                padding: 15px 12px !important;
+                min-height: 48px;
+            }
+            
+            .flex.flex-wrap.justify-center {
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                align-items: center;
+                justify-content: center !important;
+                margin-bottom: 15px !important;
+            }
+            
+            #dim-detail {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+            
+            .magic-title {
+                font-size: 18px !important;
+            }
+            
+            .magic-item-title {
+                font-size: 13px !important;
+            }
+            
+            .magic-item-desc {
+                font-size: 12px !important;
+            }
+            
+            button.btn-action {
+                margin-bottom: 10px !important;
+            }
+            
+            .radar-container {
+                height: 280px !important;
+                margin: 15px auto !important;
+                width: 95% !important;
+                -ms-touch-action: manipulation;
+            }
+            
+            #radar {
+                height: 280px !important;
+                min-height: 280px !important;
+            }
+            
+            #btn-prev {
+                width: 100% !important;
+            }
+        }
+
+        #page-result {
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+            height: auto !important;
+            max-height: none !important;
+            position: relative !important;
+        }
+
+        input, button, select, textarea {
+            font-size: 16px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .w-2/3 {
+            width: 66.666667%;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .p-6 {
+            padding: 24px;
+        }
+
+        .p-8 {
+            padding: 32px;
+        }
+
+        .py-3 {
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
+
+        .py-4 {
+            padding-top: 16px;
+            padding-bottom: 16px;
+        }
+
+        .px-12 {
+            padding-left: 48px;
+            padding-right: 48px;
+        }
+
+        .rounded-xl {
+            border-radius: 12px;
+        }
+
+        .rounded-full {
+            border-radius: 9999px;
+        }
+
+        .rounded-2xl {
+            border-radius: 16px;
+        }
+
+        .text-2xl {
+            font-size: 24px;
+        }
+
+        .text-4xl {
+            font-size: 36px;
+        }
+
+        .text-xl {
+            font-size: 20px;
+        }
+
+        .text-lg {
+            font-size: 18px;
+        }
+
+        .text-sm {
+            font-size: 14px;
+        }
+
+        .text-white {
+            color: white;
+        }
+
+        .text-gray-700 {
+            color: #374151;
+        }
+
+        .text-gray-800 {
+            color: #1f2937;
+        }
+
+        .text-gray-400 {
+            color: #9ca3af;
+        }
+
+        .text-orange-500 {
+            color: #f97316;
+        }
+
+        .text-blue-500 {
+            color: #3b82f6;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .bg-orange-50 {
+            background-color: #fff7ed;
+        }
+
+        .bg-orange-100 {
+            background-color: #ffedd5;
+        }
+
+        .bg-orange-500 {
+            background-color: #f97316;
+        }
+
+        .bg-blue-500 {
+            background-color: #3b82f6;
+        }
+
+        .bg-white {
+            background-color: white;
+        }
+
+        .border-l-4 {
+            border-left-width: 4px;
+            border-left-style: solid;
+        }
+
+        .border-orange-500 {
+            border-left-color: #f97316;
+        }
+
+        .border-orange-400 {
+            border-left-color: #fb923c;
+        }
+
+        .relative {
+            position: relative;
+        }
+
+        .overflow-hidden {
+            overflow: hidden;
+        }
+
+        .-rotate-2 {
+            transform: rotate(-2deg);
+        }
+
+        .rotate-2 {
+            transform: rotate(2deg);
+        }
+
+        .min-h-\[3rem\] {
+            min-height: 3rem;
+        }
+
+        .leading-relaxed {
+            line-height: 1.625;
+        }
+
+        .hover\:bg-orange-600:hover {
+            background-color: #ea580c;
+        }
+
+        .disabled\:opacity-50:disabled {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="page-start" class="text-center space-y-8 mt-10">
+        <div class="card p-8 relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-300 rounded-full opacity-50 -z-10"></div>
+            
+            <h1 class="title">食物人格测试</h1>
+            <div class="text-left text-gray-700 space-y-4 mb-8 leading-relaxed font-medium">
+                <p>如果把人与食物的关系看作一种性格，每个人都会有自己的 “食物人格”。</p>
+                <p>有人是风味的侦探，在味道里觉察情绪。</p>
+                <p>有人是节律的守护者，在三餐里建立生活秩序。</p>
+                <p>有人是享受当下的美食家，也有人在餐桌上思考生活的意义。</p>
+                <p>还有人，把一餐一饭变成连接人与人的方式。</p>
+                <p>接下来的18道生活场景选择，没有标准答案，也没有对错。</p>
+                <p>请跟随你的第一反应选择答案。</p>
+                <p>整个测试大约需要2–3分钟完成。</p>
+            </div>
+            <button id="start-btn" class="btn-action bg-orange-500 text-white text-xl px-12 py-4 rounded-full font-bold hover:bg-orange-600">
+                开启发现之旅
+            </button>
+        </div>
+    </div>
+
+    <div id="page-test">
+        <div class="card p-6">
+            <div class="flex justify-between items-end mb-4">
+                <span class="title-font text-2xl text-orange-500">Q<span id="q-num">1</span></span>
+                <div class="progress-bar-container w-2/3">
+                    <div class="progress-title">
+                        <span id="progress-number" class="progress-number">1/18</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="progress" class="w-0"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="q-dim" class="dim-tag hidden"></div>
+            <h2 id="q-text" class="text-xl font-bold text-gray-800 mb-8 min-h-[3rem]"></h2>
+            
+            <div id="options" class="space-y-4 mb-10"></div>
+
+            <div class="flex justify-between gap-4">
+                <button onclick="prev()" id="btn-prev" class="btn-action flex-1 py-3 rounded-xl font-bold bg-white text-gray-600">上一题</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-result">
+        <div class="card p-6 text-center">
+            <h2 class="title-font text-4xl mb-2 text-gray-800">你的食物人格报告</h2>
+            <p class="text-gray-400 text-sm mb-8">基于你的潜意识多维度分析</p>
+
+            <div class="flex flex-wrap justify-center gap-4 mb-10">
+                <div class="card main-person-card text-white person-card -rotate-2">
+                    <div class="person-title title-font">主人格</div>
+                    <div id="p1" class="person-name"></div>
+                    <div id="p1-dim" class="person-dim"></div>
+                </div>
+                <div id="sub-person-card" class="card sub-person-card text-white person-card rotate-2">
+                    <div class="person-title title-font">副人格</div>
+                    <div id="p2" class="person-name"></div>
+                    <div id="p2-dim" class="person-dim"></div>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 15px; position: relative; z-index: 1;">
+                <div class="radar-container">
+                    <canvas id="radar"></canvas>
+                </div>
+            </div>
+
+            <div id="main-desc" class="text-left space-y-6 mb-10"></div>
+
+            <div class="text-left mb-6">
+                <h3 class="title-font text-xl flex items-center mb-4">
+                    <span class="w-8 h-8 bg-black text-white rounded-full inline-flex items-center justify-center mr-2 text-sm hidden"></span>
+                    其他维度解析
+                </h3>
+                <div id="dim-detail" class="grid gap-4"></div>
+            </div>
+
+            <div id="food-magic" class="magic-section text-left mb-10">
+                <h3 class="magic-title"><i class="fa fa-magic"></i>食物魔法 | 生活提升指南</h3>
+                <div id="magic-content" class="space-y-6"></div>
+            </div>
+
+            <button onclick="saveResultImage()" class="btn-action bg-blue-500 text-white py-4 rounded-2xl font-bold text-lg w-full mb-4">
+                <i class="fa fa-download mr-2"></i>保存测试结果
+            </button>
+            
+            <button onclick="restart()" class="btn-action w-full bg-orange-500 text-white py-4 rounded-2xl font-bold text-lg">
+                重新探索
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        window.scrollTo(0, 0);
+    }, 100);
+    
+    document.getElementById('start-btn').addEventListener('click', startTest);
+    document.getElementById('start-btn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        startTest();
+    }, {passive: false});
+});
+
+function shuffleArray(array) {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+}
+
+const foodMagicTips = {
+    "味蕾感知者": {
+        strength: "发挥你的味蕾敏感度优势",
+        strengthTips: [
+            { item: "分享味觉体验", desc: "把你的味觉感受分享给身边的人，推荐好吃的餐厅或食材，让更多人感受到食物的美好。" },
+            { item: "成为餐桌品鉴师", desc: "聚餐时可以主动分享对菜品的品鉴感受，提升用餐的趣味性和层次感。" },
+            { item: "尝试轻烹饪", desc: "选择简单的烹饪方式（如清蒸、白灼），更好地发挥你的味觉优势，感受食材本身的味道。" }
+        ],
+        improve: "拓展味觉体验的广度",
+        improveTips: [
+            { item: "慢食练习", desc: "每餐选择一口食物，闭上眼睛慢慢咀嚼20次以上，专注感受食物的层次感、质地变化和余味，每天坚持5分钟即可看到效果。" },
+            { item: "味道对比训练", desc: "尝试对比品尝同类但不同品质的食材（如不同产地的盐、不同等级的橄榄油），记录它们的细微差别，培养味觉记忆。" },
+            { item: "清洁味觉", desc: "每周安排1-2天清淡饮食，避免重盐重辣，让味蕾恢复敏感度，更好地感知食物本味。" }
+        ]
+    },
+    "节律自律者": {
+        strength: "发挥你的饮食自律优势",
+        strengthTips: [
+            { item: "分享自律经验", desc: "把你的饮食规划方法分享给有需要的朋友，帮助他人建立健康的饮食习惯。" },
+            { item: "成为健康榜样", desc: "你的自律会潜移默化影响身边人，可以带动家人一起建立规律的饮食节奏。" },
+            { item: "适度放松", desc: "在保持自律的同时，偶尔给自己一点小奖励，让健康饮食成为可持续的生活方式。" }
+        ],
+        improve: "让自律更有温度",
+        improveTips: [
+            { item: "弹性计划", desc: "在严格的饮食计划中预留10%的弹性空间，允许偶尔的小放纵，避免因一次破例而全盘放弃，让自律更可持续。" },
+            { item: "正向激励", desc: "设定小目标并给自己非食物类的奖励（如买一本新书、看一场电影），强化自律带来的成就感而非仅仅关注饮食控制。" },
+            { item: "倾听身体信号", desc: "在坚持规则的同时，偶尔放下计划，感受身体的真实需求，平衡自律与身心感受。" }
+        ]
+    },
+    "美食探索家": {
+        strength: "发挥你的美食探索优势",
+        strengthTips: [
+            { item: "成为美食向导", desc: "把你的美食发现分享给朋友，成为大家的“美食地图”，让更多人体验不同的风味。" },
+            { item: "记录探索之旅", desc: "用文字或照片记录你的美食探索经历，既是美好回忆，也能启发他人。" },
+            { item: "尊重多元口味", desc: "在探索新味道的同时，尊重不同人的口味偏好，让美食探索更有温度。" }
+        ],
+        improve: "拓展你的风味边界",
+        improveTips: [
+            { item: "每周新尝试", desc: "每周尝试一种从未吃过的食材或烹饪方式，从温和的创新开始（如用新香料调味），逐步拓展口味舒适区。" },
+            { item: "食材溯源", desc: "了解你喜欢的食物的产地、历史和文化背景，让探索不仅停留在味道，更有深度和故事感。" },
+            { item: "分享体验", desc: "将你的美食发现分享给朋友，组织主题聚餐，让探索成为社交的乐趣，而非独自的冒险。" }
+        ]
+    },
+    "暖心饭友": {
+        strength: "发挥你的餐桌社交优势",
+        strengthTips: [
+            { item: "成为聚餐组织者", desc: "利用你的社交优势组织朋友聚餐，让更多人感受到餐桌的温暖和快乐。" },
+            { item: "关注特殊需求", desc: "聚餐时留意有饮食禁忌或偏好的朋友，让每个人都能吃得舒心。" },
+            { item: "创造美好回忆", desc: "用照片或小视频记录聚餐的美好瞬间，成为大家珍贵的回忆。" }
+        ],
+        improve: "让餐桌更有温度",
+        improveTips: [
+            { item: "主动倾听", desc: "聚餐时多提问少表达，关注同桌人的饮食偏好和故事，让每个人都感受到被重视。" },
+            { item: "小惊喜准备", desc: "记住重要人的饮食喜好，在聚餐时悄悄准备他们喜欢的小食，细节更能温暖人心。" },
+            { item: "创造轻松氛围", desc: "准备一些轻松的餐桌小游戏或话题，避免冷场，让每个人都能放松享受用餐时光。" }
+        ]
+    },
+    "食趣创造者": {
+        strength: "发挥你的食物创意优势",
+        strengthTips: [
+            { item: "分享创意吃法", desc: "把你的创意烹饪方法分享到社交平台，给更多人带来饮食灵感。" },
+            { item: "家庭创意时光", desc: "和家人一起尝试创意烹饪，让做饭成为有趣的家庭活动。" },
+            { item: "保留经典味道", desc: "在创新的同时，也保留一些经典的味道，平衡创意与传统。" }
+        ],
+        improve: "让日常饮食充满创意",
+        improveTips: [
+            { item: "仪式感小物", desc: "用漂亮的餐具、桌布或小花点缀餐桌，即使是简单的家常菜也能变得有仪式感。" },
+            { item: "食材重组", desc: "尝试将不同菜系的做法融合，如用中式调料烹饪西餐食材，创造属于自己的独特味道。" },
+            { item: "味觉日记", desc: "记录让你印象深刻的味道和用餐体验，积累灵感，让每一次烹饪都有故事和创意。" }
+        ]
+    },
+    "饮食哲思者": {
+        strength: "发挥你的饮食思考优势",
+        strengthTips: [
+            { item: "分享饮食感悟", desc: "把你对饮食的思考和感悟分享给他人，让简单的吃饭也能带来人生启发。" },
+            { item: "慢下来用餐", desc: "给自己足够的用餐时间，在享受食物的同时，也享受思考的过程。" },
+            { item: "活在当下", desc: "在思考的同时，也学会放下思绪，单纯享受食物带来的美好体验。" }
+        ],
+        improve: "从饮食中领悟生活智慧",
+        improveTips: [
+            { item: "用餐冥想", desc: "每餐开始前花30秒思考食物的来源和制作过程，感恩食物带来的滋养，培养感恩之心。" },
+            { item: "简化饮食", desc: "尝试断舍离式饮食，减少不必要的调味品和加工食品，回归食物本质，从中领悟简单生活的智慧。" },
+            { item: "饮食反思", desc: "每周花10分钟反思自己的饮食选择与生活状态的关联，让饮食成为自我认知的镜子。" }
+        ]
+    }
+};
+
+const questions = [
+{ dim:"味蕾亲密度", q:"如果中午只有半个小时的用餐时间，你会如何享受午餐？",
+  realOpts: shuffleArray([
+    {t:"边吃饭边看手机。",s:1},
+    {t:"快速吃完再小憩一会。",s:2},
+    {t:"品尝食物好不好吃，下次要不要再来。",s:2},
+    {t:"不论是否喜欢，都用心感受食物的味道、口感。",s:3}
+])},
+{ dim:"味蕾亲密度", q:"你通常是在什么情况下意识到“该吃东西了”？",
+  realOpts: shuffleArray([
+    {t:"突然就很想吃点甜食或者有某种味道的东西。",s:1},
+    {t:"饭点到了或者是闻到香味产生进食念头。",s:2},
+    {t:"胃部出现明显的空虚感、咕噜声，或者是伴随轻微头晕或注意力下降的时候。",s:2},
+    {t:"察觉到胃部轻微的收缩感。",s:3}
+])},
+{ dim:"味蕾亲密度", q:"在吃完饭之后，你往往更在意？",
+  realOpts: shuffleArray([
+    {t:"忙起来往往没有时间顾及吃完饭之后的感受，吃过了就行。",s:1},
+    {t:"这一餐吃得多不多、热量高不高，会不会长胖。",s:2},
+    {t:"吃的食物味道怎样，自己喜不喜欢。",s:2},
+    {t:"吃完后身体是不是舒服，自己的心情如何。",s:3}
+])},
+{ dim:"饮食节律性", q:"为了保持身材，你制定了一份饮食计划，当面对一份非常诱人但不在你当前计划内的食物时，你通常会？",
+  realOpts: shuffleArray([
+    {t:"欣然接受，享受当下，计划可以明天再开始。",s:1},
+    {t:"可能会吃一点，然后通过下一餐少吃来“平衡”。",s:2},
+    {t:"理性拒绝，因为这会打乱我的热量或营养摄入规划。",s:2},
+    {t:"不仅拒绝，甚至会因为这种“诱惑”的出现而感到烦躁或不安。",s:3}
+])},
+{ dim:"饮食节律性", q:"你如何处理“剩菜”？",
+  realOpts: shuffleArray([
+    {t:"随心所欲，想吃就吃，不想吃就放着或处理掉。",s:1},
+    {t:"为了不浪费，通常会尽量吃完，但不会强迫自己。",s:2},
+    {t:"有明确的处理规则，比如按量留存作为下一餐或直接丢弃。",s:2},
+    {t:"不喜欢吃剩菜，按照用量买新鲜食材烹饪，从源头避免剩余。",s:3}
+])},
+{ dim:"饮食节律性", q:"饱餐一顿后的深夜突然感到饥饿，你的典型反应是？",
+  realOpts: shuffleArray([
+    {t:"赶紧去找点吃的，饿了就要吃，不能委屈自己。",s:1},
+    {t:"看情况，如果真的很饿就吃一点简单的，比如水果；如果不是特别饿就忍忍。",s:2},
+    {t:"告诉自己睡前进食不健康，稍微喝点水，等第二天再吃想吃的东西。",s:2},
+    {t:"坚决不吃，抵抗住饥饿感是自律的表现。",s:3}
+])},
+{ dim:"饕餮狩猎欲", q:"在确保安全、卫生和符合伦理的前提下，假设以下食材都被做成菜肴摆在你面前。你在尝试哪一类时更不犹豫？",
+  realOpts: shuffleArray([
+    {t:"猪大肠、猪脑这类家禽家畜的特殊部位。",s:1},
+    {t:"蚕蛹等被广泛食用但形态特殊的食材。",s:2},
+    {t:"在西南少数民族文化中常见但其他地方少见的蛋白质来源，例如竹虫、蚂蚁蛋。",s:2},
+    {t:"藻类蛋白主食等基于未来科技或全新理念的食物。",s:3}
+])},
+{ dim:"饕餮狩猎欲", q:"作为美食爱好者，你被邀请来到一个国际美食市集，有四份食物的样品可以试吃，你会选择首先试吃的是？",
+  realOpts: shuffleArray([
+    {t:"外形和饺子相似的食物，馅料除了蔬菜、肉还有奶酪。",s:1},
+    {t:"黑黑的，像圆形吐司切片面包，据卖家介绍是由猪血、燕麦和香料混合制成的香肠。",s:2},
+    {t:"一碗炖菜，里面有鱼和胡萝卜、土豆、芹菜，奶白色的汤汁十分浓稠，似乎是放了奶油。",s:2},
+    {t:"发酵风干后的鲨鱼肉，有人形容味道像消毒水加氨气加海味。",s:3}
+])},
+{ dim:"饕餮狩猎欲", q:"当来到一个陌生城市，而餐饮选择有限的时候，你会怎么做？",
+  realOpts: shuffleArray([
+    {t:"找到最近的肯德基、麦当劳或其他连锁品牌，主打一个没有希望就不会失望。",s:1},
+    {t:"去街边小摊看看，哪种食物看起来不错就尝试下。",s:2},
+    {t:"从大众点评或小红书上面寻找当地有特色的餐厅或推荐的美食榜单，必吃每家的招牌菜。",s:2},
+    {t:"逛菜市场挑选食材，回酒店或民宿自己烹饪，体验本地食材和做法。",s:3}
+])},
+{ dim:"社交饭友力", q:"一群朋友聚餐时，餐桌上有一道神秘料理，每个人都只能靠味道猜食材，这时你更可能会怎么做？",
+  realOpts: shuffleArray([
+    {t:"朋友递过来一小口，尝了一下之后点头或摇头，然后就不再吃第二口了。",s:1},
+    {t:"尝了几口，然后对旁边的朋友说：“这口味挺特别的，你觉得呢？”。",s:2},
+    {t:"吃着菜，同时和桌上的人讨论：“这里面好像有蘑菇。”。",s:2},
+    {t:"提议：“我们来做猜食材游戏吧，每个人轮流猜里面有什么，谁猜对谁有奖励！”。",s:3}
+])},
+{ dim:"社交饭友力", q:"周末你独自去了一家口碑很不错的餐厅，但需要排队 1 小时。服务员提议：“如果愿意和陌生人拼桌，现在立刻有位子。”这时你会？",
+  realOpts: shuffleArray([
+    {t:"礼貌地表示“我想单独坐”，宁愿多等一小时，也不愿与陌生人共享餐桌。",s:1},
+    {t:"询问对方人数和大致情况，如果是看起来安静的人就同意，如果是热闹的大团体就拒绝，视具体情况而定。",s:2},
+    {t:"可以接受，坐下后简单打个招呼，然后各自吃饭，可能会简单聊下菜品，互不打扰但共享空间。",s:2},
+    {t:"自然地打招呼，聊聊菜品口味或排队经历，如果聊得来就互换联系方式，享受这种偶然的相遇。",s:3}
+])},
+{ dim:"社交饭友力", q:"在餐桌上，当你点的一盘大家都爱吃的菜被端上桌后，你会如何分餐？",
+  realOpts: shuffleArray([
+    {t:"主动说“我们一人几块吧”，或者先把盘子转到自己面前分好。",s:1},
+    {t:"摆上公筷，大家想吃什么夹什么，随意点就好。",s:2},
+    {t:"主动把最好的部分一一夹给朋友们，询问“你要不要这个”，尽可能每个人都照顾到。",s:2},
+    {t:"彼此是非常亲密的朋友/家人，很自然地用手拿取或者用自己的餐具把食物分享给其他人。",s:3}
+])},
+{ dim:"食物想象力", q:"厨房里油烟升起，你正在炉灶前大展身手做一道你喜欢的菜肴。当尝到熟悉的味道，你感到非常幸福，但这时你突然意识到，这一刻不会永远存在。如果只能用一种方式保存这段记忆和感受，你更倾向于哪种方式？",
+  realOpts: shuffleArray([
+    {t:"把这道菜写成菜谱，随时可以复刻。",s:1},
+    {t:"拍摄视频记录整个做菜的过程。",s:2},
+    {t:"悉心呵护使用的锅具，让它可以保存更久。",s:2},
+    {t:"把这道菜定为每年的固定仪式，约定每年的同一时间重新来做。",s:3}
+])},
+{ dim:"食物想象力", q:"假如“时间”是一道菜，你认为它更像是？",
+  realOpts: shuffleArray([
+    {t:"一锅随着时间的推移越来越香的炖肉。",s:1},
+    {t:"一盘刚出炉只能趁热吃的酥皮点心。",s:2},
+    {t:"一道自己选择食材、每一份都要重新组合的北京烤鸭卷饼或墨西哥塔可（Taco）。",s:2},
+    {t:"一道粤菜“粥底火锅”，先烫食的海鲜、肉类、蔬菜只是过客，融合了所有精华看似平淡的米粥才是灵魂。",s:3}
+])},
+{ dim:"食物想象力", q:"如果未来的餐桌可以随你想象和设计，你会更想要设计什么样的产品？",
+  realOpts: shuffleArray([
+    {t:"可食用的餐具。",s:1},
+    {t:"自动计算营养的碗。",s:2},
+    {t:"根据心率可以改变口味的饮料。",s:2},
+    {t:"一套智能系统，在未来社区的每周聚餐，它可以将大家带来的食材组合成多到新奇菜，等到上桌才知道味道。",s:3}
+])},
+{ dim:"美食哲学家", q:"即便不是所有的哲学家都直接讨论过“食物”，但他们关于“人如何存在”的思考，同样适用于如何理解“吃”这件事。下面关于食物的哲学观点，你更认同哪一种？",
+  realOpts: shuffleArray([
+    {t:"人们必须能够生活，才能创造历史。为了生活，首先需要吃喝、住房、衣服以及其他一些东西。",s:1},
+    {t:"人就是他所吃的东西。",s:2},
+    {t:"人通过选择定义自己。食物亦是自由意志的表达。",s:2},
+    {t:"主观性即真理。真正重要的不是食物本身，而是你与它之间的关系。",s:3}
+])},
+{ dim:"美食哲学家", q:"爱做饭的人总是会对厨房格外看重。如果你拥有一个理想的厨房，它更有可能是什么样子？",
+  realOpts: shuffleArray([
+    {t:"厨具和电器分类清晰、摆放整齐，常用工具都在伸手可及的位置。厨房布局非常合理，洗、切、炒可以流水线作业，做饭体验感拉满。",s:1},
+    {t:"橱柜收纳整齐，调味料按顺序排列，冰箱里总是有准备好的食材，每次做饭都可以不慌不忙，不用担心这个调味料没有、那个刚用完了。",s:2},
+    {t:"开放式的厨房，有人靠着聊天，有人帮忙洗菜，有人偷吃刚出锅的食物。做饭的过程总是伴随着吵吵闹闹，饭经常做着做着就变成了聚会。",s:2},
+    {t:"不止是做饭的地方，也是能量补充空间。窗边有一张小桌，阳光会透过玻璃落在木质台面上。水壶在慢慢冒气，你偶尔停下动作，发会儿呆，坐一会儿，或者记下一个刚冒出来的念头。",s:3}
+])},
+{ dim:"美食哲学家", q:"如果明天世界重启，今天是你这一阶段人生的“最后一餐”，你会怎么选？",
+  realOpts: shuffleArray([
+    {t:"秉持“来都来了，别留遗憾”，点最爱吃的食物。",s:1},
+    {t:"留下”我来过的这个世界”的证明，吃妈妈做的菜、小时候味道，和爱的人在一起。",s:2},
+    {t:"选择“把这一刻变成永恒”，去一直很想吃的餐厅，让味蕾记住这个夜晚。",s:2},
+    {t:"到头来才发现“平平淡淡才是真”，选一碗清汤面或者一碗白粥配一点咸菜。",s:3}
+])}
+];
+
+const dimNames = ["味蕾亲密度","饮食节律性","饕餮狩猎欲","社交饭友力","食物想象力","美食哲学家"];
+
+const personMap = {
+  "味蕾亲密度":"味蕾感知者",
+  "饮食节律性":"节律自律者",
+  "饕餮狩猎欲":"美食探索家",
+  "社交饭友力":"暖心饭友",
+  "食物想象力":"食趣创造者",
+  "美食哲学家":"饮食哲思者"
+};
+
+const personDesc = {
+  "味蕾感知者": {
+    title: "味蕾感知者 · 身心同频大师（味蕾亲密度）",
+    desc: "你对饥饿、饱腹、情绪与饮食的关联超敏锐，吃饭专注不敷衍，能精准捕捉身体反馈，不盲从外界饮食标准，每一次进食都能与身体深度对话。"
+  },
+  "节律自律者": {
+    title: "节律自律者 · 节奏掌控者（饮食节律性）",
+    desc: "你饮食有明确且坚定的规律（或明确的 “随性原则”），能完美平衡本能与规则，不暴饮暴食也不刻意压抑，生活节奏稳定，饮食方式高度适配自我状态。"
+  },
+  "美食探索家": {
+    title: "美食探索家 · 味觉冒险家（饕餮狩猎欲）",
+    desc: "你对小众食材、异国料理、奇异食癖接受度极高，主动追寻不同饮食文化，不局限于味觉舒适区，以探索未知风味为乐，包容度拉满。"
+  },
+  "暖心饭友": {
+    title: "暖心饭友 · 饮食社交达人（社交饭友力）",
+    desc: "你极度重视饮食场景的社交属性，擅长在聚餐中分享互动、调动氛围，同时能精准把握独处与陪伴的边界，归属感需求强，食物是重要的社交纽带。"
+  },
+  "食趣创造者": {
+    title: "食趣创造者 · 脑洞美食家（食物想象力）",
+    desc: "你极致爱混搭、喜创新，彻底不被传统吃法束缚，会主动设计新奇搭配 / 创意摆盘，甚至自创食谱，吃饭充满仪式感与趣味，擅长用食物表达创意。"
+  },
+  "饮食哲思者": {
+    title: "饮食哲思者 · 食念坚守者（美食哲学家）",
+    desc: "你饮食藏着明确的生活态度，极度重视食物背后的意义（文化、环保、手作、在地等），不跟风追网红，有坚定的饮食信念，吃什么就是对生活态度的践行。"
+  }
+};
+
+// 核心调整：维度解读函数（适配7-10/4-6/0-3区间）
+function getDimDesc(dimName, score) {
+  let level = "";
+  let title = "";
+  let text = "";
+
+  // 严格按照用户定义的区间划分
+  if (score >= 7 && score <= 10) {
+    level = "高";
+  } else if (score >= 4 && score <= 6) {
+    level = "中";
+  } else if (score >= 0 && score <= 3) {
+    level = "低";
+  }
+
+  // 味蕾亲密度
+  if (dimName === "味蕾亲密度") {
+    if (level === "高") {
+      title = "身心同频大师（7-10分）";
+      text = "对饥饿、饱腹、情绪与饮食的关联超敏锐，吃饭专注不敷衍，能精准捕捉身体反馈，不盲从外界饮食标准，每一次进食都能与身体深度对话。";
+    } else if (level === "中") {
+      title = "身体倾听者（4-6分）";
+      text = "多数时候能感知身体需求，但偶尔会因忙碌 / 情绪忽略，饮食态度介于 “刻意关注” 与 “随性对待” 之间，不会过度纠结但也不敷衍。";
+    } else {
+      title = "感官随性者（0-3分）";
+      text = "对饥饿、饱腹等身体信号不够敏感，吃饭时较少关注身体反馈，也不太区分情绪性进食与实际需求，主要凭当下口味或习惯选择食物，饮食状态较为随性。";
+    }
+  } 
+  // 饮食节律性
+  else if (dimName === "饮食节律性") {
+    if (level === "高") {
+      title = "节奏掌控者（7-10分）";
+      text = "饮食有明确且坚定的规律（或明确的 “随性原则”），能完美平衡本能与规则，不暴饮暴食也不刻意压抑，生活节奏稳定，饮食方式高度适配自我状态。";
+    } else if (level === "中") {
+      title = "弹性自律者（4-6分）";
+      text = "大部分时间能保持饮食节奏，但偶尔会因特殊情况（聚会、加班）打破，自律与随性灵活切换，不会因一次打破规则而焦虑。";
+    } else {
+      title = "随性饮食者（0-3分）";
+      text = "没有固定的饮食规律，进食时间、食量会随当天心情、场景随意调整，不刻意遵循秩序，也较少主动关注身体本能的稳定需求，饮食状态更偏向自由无拘。";
+    }
+  } 
+  // 饕餮狩猎欲
+  else if (dimName === "饕餮狩猎欲") {
+    if (level === "高") {
+      title = "味觉冒险家（7-10分）";
+      text = "对小众食材、异国料理、奇异食癖接受度极高，主动追寻不同饮食文化，不局限于味觉舒适区，以探索未知风味为乐，包容度拉满。";
+    } else if (level === "中") {
+      title = "适度尝试者（4-6分）";
+      text = "对新鲜食物不排斥，若有机会会尝试，但不会主动刻意追寻，熟悉的口味仍占主导，包容度中等，既不保守也不激进。";
+    } else {
+      title = "味觉守护者（0-3分）";
+      text = "对长期熟悉的食物与口味有深厚偏好，更享受已知风味带来的安全感，饮食选择范围相对集中，对未知料理的尝试意愿不高，偏爱稳定的味觉体验。";
+    }
+  } 
+  // 社交饭友力
+  else if (dimName === "社交饭友力") {
+    if (level === "高") {
+      title = "饮食社交达人（7-10分）";
+      text = "极度重视饮食场景的社交属性，擅长在聚餐中分享互动、调动氛围，同时能精准把握独处与陪伴的边界，归属感需求强，食物是重要的社交纽带。";
+    } else if (level === "中") {
+      title = "随缘社交者（4-6分）";
+      text = "不排斥聚餐，也能享受独自吃饭的宁静，社交对饮食的影响中等，不会为了社交勉强自己吃不喜欢的食物，也不会刻意回避饮食社交。";
+    } else {
+      title = "独处美食家（0-3分）";
+      text = "更享受独自用餐的宁静与自在，饮食场景中更在意自我感受，不需要通过食物联结他人，独自进食时能更好地专注于食物本身，状态更放松舒适。";
+    }
+  } 
+  // 食物想象力
+  else if (dimName === "食物想象力") {
+    if (level === "高") {
+      title = "脑洞美食家（7-10分）";
+      text = "极致爱混搭、喜创新，彻底不被传统吃法束缚，会主动设计新奇搭配 / 创意摆盘，甚至自创食谱，吃饭充满仪式感与趣味，擅长用食物表达创意。";
+    } else if (level === "中") {
+      title = "偶尔跨界者（4-6分）";
+      text = "不排斥创意料理，偶尔会尝试新搭配、新摆盘，但更偏爱熟悉的吃法，创意感不突出，只会在兴趣来潮时突破常规。";
+    } else {
+      title = "经典爱好者（0-3分）";
+      text = "偏爱传统、固定的食材搭配与吃法，对熟悉的味道有很强的偏好，更享受已知口味带来的安心感，对新奇吃法的尝试意愿较低，饮食风格稳重踏实。";
+    }
+  } 
+  // 美食哲学家
+  else if (dimName === "美食哲学家") {
+    if (level === "高") {
+      title = "食念坚守者（7-10分）";
+      text = "饮食藏着明确的生活态度，极度重视食物背后的意义（文化、环保、手作、在地等），不跟风追网红，有坚定的饮食信念，吃什么就是对生活态度的践行。";
+    } else if (level === "中") {
+      title = "偶尔思考者（4-6分）";
+      text = "有时会关注食物的意义，但更多时候还是以 “好吃、方便” 为核心，精神需求不强烈，既不盲目务实也不刻意追求深度。";
+    } else {
+      title = "务实美食家（0-3分）";
+      text = "更注重饮食的实用性，将 “吃饱吃好、方便适口” 作为核心需求，不刻意赋予食物额外的精神意义，饮食选择简洁直接，专注于口腹的即时满足。";
+    }
+  }
+  
+  return {title, text, level};
+}
+
+function generateFoodMagic() {
+    const magicContent = document.getElementById("magic-content");
+    let html = '';
+    
+    const sortedDims = Object.entries(dimScores).sort((a, b) => b[1] - a[1]);
+    const highestDim = sortedDims[0];
+    const lowestDim = sortedDims[sortedDims.length - 1];
+    
+    if (highestDim[0] === lowestDim[0]) {
+        html += `<div class="mb-4">
+            <h4 class="font-bold text-lg text-orange-600 mb-2">✨ 均衡发展：保持你的食物人格平衡</h4>
+            <div class="magic-item">
+                <div class="magic-item-title">保持多元体验</div>
+                <div class="magic-item-desc">你的各维度发展均衡，建议继续保持多元的饮食体验，偶尔尝试跳出舒适区，让食物人格更加丰富立体。</div>
+            </div>
+            <div class="magic-item">
+                <div class="magic-item-title">定期自我觉察</div>
+                <div class="magic-item-desc">每月花一点时间回顾自己的饮食选择和习惯，觉察不同场景下的饮食偏好变化，保持与食物的健康关系。</div>
+            </div>
+        </div>`;
+    } else {
+        const highestPerson = personMap[highestDim[0]];
+        const highestTips = foodMagicTips[highestPerson];
+        
+        html += `<div class="magic-strength mb-6">
+            <h4 class="font-bold text-lg text-green-600 mb-2">🌟 你的优势：${highestTips.strength}</h4>
+            <div class="space-y-3">`;
+        
+        highestTips.strengthTips.forEach(tip => {
+            html += `<div class="magic-item">
+                <div class="magic-item-title">${tip.item}</div>
+                <div class="magic-item-desc">${tip.desc}</div>
+            </div>`;
+        });
+        
+        html += `</div></div>`;
+        
+        const lowestPerson = personMap[lowestDim[0]];
+        const lowestTips = foodMagicTips[lowestPerson];
+        
+        html += `<div class="magic-improve">
+            <h4 class="font-bold text-lg text-amber-600 mb-2">🌱 可以尝试：${lowestTips.improve}</h4>
+            <div class="space-y-3">`;
+        
+        lowestTips.improveTips.forEach(tip => {
+            html += `<div class="magic-item">
+                <div class="magic-item-title">${tip.item}</div>
+                <div class="magic-item-desc">${tip.desc}</div>
+            </div>`;
+        });
+        
+        html += `</div></div>`;
+    }
+    
+    magicContent.innerHTML = html;
+}
+
+let currentQ = 0;
+let answers = {};
+let dimScores = {
+  "味蕾亲密度": 0,
+  "饮食节律性": 0,
+  "饕餮狩猎欲": 0,
+  "社交饭友力": 0,
+  "食物想象力": 0,
+  "美食哲学家": 0
+};
+
+function startTest() {
+  document.getElementById("page-start").style.display = 'none';
+  document.getElementById("page-test").style.display = 'block';
+  document.getElementById("page-test").classList.add('active');
+  loadQuestion(currentQ);
+  window.scrollTo(0, document.getElementById("page-test").offsetTop);
+}
+
+function loadQuestion(index) {
+  try {
+    const q = questions[index];
+    document.getElementById("q-num").textContent = (index + 1);
+    document.getElementById("q-text").textContent = q.q;
+    document.getElementById("q-dim").textContent = q.dim;
+    document.getElementById("q-dim").classList.remove("hidden");
+    
+    const progress = ((index + 1) / questions.length) * 100;
+    document.getElementById("progress").style.width = `${progress}%`;
+    
+    document.getElementById("progress-number").textContent = `${index + 1}/${questions.length}`;
+    
+    const optionsContainer = document.getElementById("options");
+    optionsContainer.innerHTML = "";
+    
+    q.realOpts.forEach((opt, optIndex) => {
+      const btn = document.createElement("button");
+      btn.className = `option-item w-full text-left p-4 rounded-xl font-medium ${answers[index] === optIndex ? 'option-selected' : ''}`;
+      btn.textContent = opt.t;
+      btn.onclick = () => selectOption(index, optIndex, opt.s, q.dim);
+      btn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        selectOption(index, optIndex, opt.s, q.dim);
+      }, {passive: false});
+      optionsContainer.appendChild(btn);
+    });
+    
+    document.getElementById("btn-prev").disabled = index === 0;
+    document.getElementById("btn-prev").classList.toggle("opacity-50", index === 0);
+    document.getElementById("btn-prev").classList.toggle("cursor-not-allowed", index === 0);
+    
+  } catch (e) {
+    console.error("加载题目出错:", e);
+  }
+}
+
+function selectOption(qIndex, optIndex, score, dim) {
+  answers[qIndex] = optIndex;
+  
+  const dimQuestions = questions.filter(q => q.dim === dim);
+  const dimQIndexes = dimQuestions.map((_, i) => questions.findIndex(q => q.dim === dim && q.q === dimQuestions[i].q));
+  
+  let dimTotal = 0;
+  let dCount = 0;
+  
+  dimQIndexes.forEach(idx => {
+    if (answers[idx] !== undefined) {
+      const optScore = questions[idx].realOpts[answers[idx]].s;
+      dimTotal += optScore;
+      if (optScore === 3) dCount++;
+    }
+  });
+  
+  if (dCount === 3) dimTotal += 1;
+  
+  dimScores[dim] = dimTotal;
+  
+  document.querySelectorAll(".option-item").forEach((btn, i) => {
+    if (i === optIndex) {
+      btn.classList.add("option-selected");
+    } else {
+      btn.classList.remove("option-selected");
+    }
+  });
+  
+  setTimeout(() => {
+    if (qIndex < questions.length - 1) {
+      currentQ = qIndex + 1;
+      loadQuestion(currentQ);
+      window.scrollTo(0, document.getElementById("page-test").offsetTop);
+    } else {
+      showResult();
+    }
+  }, 300);
+}
+
+function prev() {
+  if (currentQ > 0) {
+    currentQ--;
+    loadQuestion(currentQ);
+    window.scrollTo(0, document.getElementById("page-test").offsetTop);
+  }
+}
+
+function showResult() {
+  document.getElementById("page-test").style.display = 'none';
+  document.getElementById("page-test").classList.remove('active');
+  document.getElementById("page-result").style.display = 'block';
+  document.getElementById("page-result").classList.add('active');
+  
+  const sortedScores = Object.entries(dimScores).sort((a, b) => b[1] - a[1]);
+  
+  let p1Dim = sortedScores[0][0];
+  let p2Dim = sortedScores[1][0];
+  
+  const topScore = sortedScores[0][1];
+  const topDims = sortedScores.filter(item => item[1] === topScore).map(item => item[0]);
+  
+  if (topDims.length >= 2) {
+    document.getElementById("p1").textContent = `${personMap[topDims[0]]} + ${personMap[topDims[1]]}`;
+    document.getElementById("p1-dim").textContent = `${topDims[0]} + ${topDims[1]}`;
+    document.getElementById("sub-person-card").style.display = "none";
+    // 如果有多个主人格，次人格为空
+    p2Dim = null;
+  } else {
+    document.getElementById("p1").textContent = personMap[p1Dim];
+    document.getElementById("p1-dim").textContent = p1Dim;
+    document.getElementById("p2").textContent = personMap[p2Dim];
+    document.getElementById("p2-dim").textContent = p2Dim;
+  }
+  
+  // 构建主人格和次人格的描述
+  let mainDescHtml = `
+    <div class="card p-4 bg-orange-50 border-l-4 border-orange-500">
+      <h3 class="font-bold text-xl mb-2">${personDesc[personMap[p1Dim]].title}</h3>
+      <p class="text-gray-700">${personDesc[personMap[p1Dim]].desc}</p>
+    </div>
+  `;
+  
+  // 添加次人格描述（如果有）
+  if (p2Dim && p2Dim !== p1Dim) {
+    mainDescHtml += `
+      <div class="card p-4 bg-orange-100 border-l-4 border-orange-400">
+        <h3 class="font-bold text-xl mb-2">${personDesc[personMap[p2Dim]].title}</h3>
+        <p class="text-gray-700">${personDesc[personMap[p2Dim]].desc}</p>
+      </div>
+    `;
+  }
+  
+  document.getElementById("main-desc").innerHTML = mainDescHtml;
+  
+  const dimDetailContainer = document.getElementById("dim-detail");
+  dimDetailContainer.innerHTML = "";
+  
+  // 只显示除主人格和次人格外的其他4个维度
+  Object.entries(dimScores).forEach(([dim, score]) => {
+    // 排除主人格和次人格
+    if (dim !== p1Dim && dim !== p2Dim) {
+      const {title, text} = getDimDesc(dim, score);
+      dimDetailContainer.innerHTML += `
+        <div class="card p-4 bg-orange-100 border-l-4 border-orange-400">
+          <h4 class="font-bold text-lg mb-1">${dim} · ${title}</h4>
+          <p class="text-gray-700 text-sm">${text}</p>
+        </div>
+      `;
+    }
+  });
+  
+  generateFoodMagic();
+  
+  const ctx = document.getElementById('radar').getContext('2d');
+  
+  if (window.radarChart) {
+    window.radarChart.destroy();
+  }
+  
+  window.radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: dimNames,
+      datasets: [{
+        label: '你的得分',
+        data: dimNames.map(dim => dimScores[dim]),
+        backgroundColor: 'rgba(249, 115, 22, 0.2)',
+        borderColor: 'rgba(249, 115, 22, 1)',
+        pointBackgroundColor: 'rgba(249, 115, 22, 1)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgba(249, 115, 22, 1)'
+      }]
+    },
+    options: {
+      elements: {
+        line: {
+          borderWidth: 3
+        }
+      },
+      scales: {
+        r: {
+          angleLines: {
+            display: true,
+            color: 'rgba(0, 0, 0, 0.1)'
+          },
+          suggestedMin: 0,
+          suggestedMax: 10,
+          ticks: {
+            stepSize: 2,
+            backdropColor: 'transparent',
+            color: '#666'
+          },
+          pointLabels: {
+            font: {
+              size: 12,
+              weight: 'bold'
+            },
+            color: '#333'
+          },
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      maintainAspectRatio: false
+    }
+  });
+  
+  window.scrollTo(0, document.getElementById("page-result").offsetTop);
+}
+
+function saveResultImage() {
+  const resultElement = document.getElementById("page-result");
+  
+  html2canvas(resultElement, {
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    backgroundColor: '#f3eee1'
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `食物人格测试结果_${new Date().getTime()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }).catch(err => {
+    alert('保存失败，请稍后重试！');
+    console.error('截图保存失败:', err);
+  });
+}
+
+function restart() {
+  currentQ = 0;
+  answers = {};
+  dimScores = {
+    "味蕾亲密度": 0,
+    "饮食节律性": 0,
+    "饕餮狩猎欲": 0,
+    "社交饭友力": 0,
+    "食物想象力": 0,
+    "美食哲学家": 0
+  };
+  
+  document.getElementById("page-result").style.display = 'none';
+  document.getElementById("page-result").classList.remove('active');
+  
+  startTest();
+}
+</script>
+</body>
+</html>
