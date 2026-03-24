@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>食物人格测试</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<!-- 先加载Chart.js确保可用 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-orange-50 to-amber-100 min-h-screen font-sans">
+<div class="max-w-xl mx-auto px-5 py-12">
+
+  <!-- 开始页 -->
+  <div id="page-start" class="text-center space-y-8">
+    <div class="bg-white rounded-2xl p-8 shadow-sm">
+      <h1 class="text-3xl font-bold text-orange-600 mb-3">食物人格测试</h1>
+      <div class="text-left text-gray-600 mb-6 leading-relaxed">
+        如果把人与食物的关系看作一种性格，每个人都会有自己的 “食物人格”。<br>
+        有人是风味的侦探，在味道里觉察情绪。<br>
+        有人是节律的守护者，在三餐里建立生活秩序。<br>
+        有人是享受当下的美食家，也有人在餐桌上思考生活的意义。<br>
+        还有人，把一餐一饭变成连接人与人的方式。<br>
+        接下来的问题，没有标准答案，也没有对错。请跟随你的第一反应选择答案。<br>
+        整个测试大约需要2–3分钟完成。
+      </div>
+      <p class="text-gray-500 mb-8">回答18题，测出你的专属食物人格</p>
+      <button onclick="startTest()" class="bg-orange-500 text-white px-8 py-3 rounded-xl font-medium hover:bg-orange-600 transition">
+        开始测试
+      </button>
+    </div>
+  </div>
+
+  <!-- 答题页 -->
+  <div id="page-test" class="hidden">
+    <div class="bg-white rounded-2xl p-6 shadow-sm">
+      <div class="flex justify-between text-sm text-gray-400 mb-2">
+        <span>第 <span id="q-num">1</span> / 18 题</span>
+      </div>
+      <div class="h-1.5 w-full bg-gray-100 rounded-full mb-6">
+        <div id="progress" class="h-full bg-orange-500 rounded-full" style="width:0%"></div>
+      </div>
+      <div class="text-orange-500 text-sm font-medium mb-2" id="dim-tag"></div>
+      <h2 id="q-text" class="text-lg font-semibold text-gray-800 mb-6"></h2>
+      <div id="options" class="space-y-3 mb-8"></div>
+      <div class="flex justify-between">
+        <button onclick="prev()" class="border border-gray-200 px-4 py-2 rounded-xl text-gray-600 hover:bg-gray-50" id="btn-prev">上一题</button>
+        <button onclick="next()" class="bg-orange-500 text-white px-5 py-2 rounded-xl font-medium hover:bg-orange-600" id="btn-next" disabled>下一题</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 结果页 -->
+  <div id="page-result" class="hidden">
+    <div class="bg-white rounded-2xl p-6 shadow-sm text-center">
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">你的食物人格</h2>
+      <p class="text-gray-400 text-sm mb-6">基于18题完整分析</p>
+
+      <div class="grid grid-cols-2 gap-4 mb-8">
+        <div class="bg-orange-50 p-4 rounded-xl">
+          <div class="text-xs text-orange-500 mb-1">主人格</div>
+          <div id="p1" class="text-lg font-bold text-gray-800"></div>
+        </div>
+        <div class="bg-blue-50 p-4 rounded-xl">
+          <div class="text-xs text-blue-500 mb-1">次人格</div>
+          <div id="p2" class="text-lg font-bold text-gray-800"></div>
+        </div>
+      </div>
+
+      <!-- 雷达图容器增加明确的宽度和高度 -->
+      <div class="mb-8 w-full h-[240px]">
+        <canvas id="radar"></canvas>
+      </div>
+
+      <!-- 人格总概述 - 突出主次人格 -->
+      <div id="main-desc" class="text-left bg-orange-50/30 p-5 rounded-xl mb-8 border border-orange-100"></div>
+
+      <!-- 6大维度详细描述 - 单独标题区分 -->
+      <div class="text-left mb-4">
+        <h3 class="font-bold text-gray-800 text-base flex items-center">
+          <i class="fa fa-bar-chart text-orange-500 mr-2"></i>六大维度详细解析
+        </h3>
+        <p class="text-xs text-gray-400 mt-1">你的每个维度得分反映了不同的饮食特质</p>
+      </div>
+      <div id="dim-detail" class="text-left space-y-3 mb-8 text-sm text-gray-600"></div>
+
+      <!-- 新增：食物魔法·生活小建议模块 -->
+      <div class="text-left mb-8">
+        <h3 class="font-bold text-gray-800 text-base flex items-center">
+          <i class="fa fa-magic text-purple-500 mr-2"></i>食物魔法·生活小建议
+        </h3>
+        <p class="text-xs text-gray-400 mt-1">结合你的饮食特质，给你一些轻松的生活小提示</p>
+        <div id="life-tips" class="mt-3 bg-purple-50/30 p-5 rounded-xl border border-purple-100 text-left text-gray-700 text-sm leading-relaxed"></div>
+      </div>
+
+      <button onclick="restart()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-medium hover:bg-orange-600 transition">
+        重新测试
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+// 1 胃蕾亲密度
+{ dim:"胃蕾亲密度", q:"如果中午只有半个小时的用餐时间，你会如何享受午餐？",
+  realOpts:[
+    {t:"边吃饭边看手机。",s:1},
+    {t:"快速吃完再小憩一会。",s:2},
+    {t:"品尝食物好不好吃，下次要不要再来。",s:3},
+    {t:"不论是否喜欢，都用心感受食物的味道、口感。",s:4}
+]},
+{ dim:"胃蕾亲密度", q:"你通常是在什么情况下意识到“该吃东西了”？",
+  realOpts:[
+    {t:"突然就很想吃点甜食或者有某种味道的东西。",s:1},
+    {t:"饭点到了或者是闻到香味产生进食念头。",s:2},
+    {t:"胃部出现明显的空虚感、咕噜声，或者是伴随轻微头晕或注意力下降的时候。",s:3},
+    {t:"察觉到胃部轻微的收缩感。",s:4}
+]},
+{ dim:"胃蕾亲密度", q:"在吃完饭之后，你往往更在意？",
+  realOpts:[
+    {t:"忙起来往往没有时间顾及吃完饭之后的感受，吃过了就行。",s:1},
+    {t:"这一餐吃得多不多、热量高不高，会不会长胖。",s:2},
+    {t:"吃的食物味道怎样，自己喜不喜欢。",s:3},
+    {t:"吃完后身体是不是舒服，自己的心情如何。",s:4}
+]},
+
+// 4 饮食节律性
+{ dim:"饮食节律性", q:"为了保持身材，你制定了一份饮食计划，当面对一份非常诱人但不在你当前计划内的食物时，你通常会？",
+  realOpts:[
+    {t:"欣然接受，享受当下，计划可以明天再开始。",s:1},
+    {t:"可能会吃一点，然后通过下一餐少吃来“平衡”。",s:2},
+    {t:"理性拒绝，因为这会打乱我的热量或营养摄入规划。",s:3},
+    {t:"不仅拒绝，甚至会因为这种“诱惑”的出现而感到烦躁或不安。",s:4}
+]},
+{ dim:"饮食节律性", q:"你如何处理“剩菜”？",
+  realOpts:[
+    {t:"随心所欲，想吃就吃，不想吃就放着或处理掉。",s:1},
+    {t:"为了不浪费，通常会尽量吃完，但不会强迫自己。",s:2},
+    {t:"有明确的处理规则，比如按量留存作为下一餐或直接丢弃。",s:3},
+    {t:"不喜欢吃剩菜，按照用量买新鲜食材烹饪，从源头避免剩余。",s:4}
+]},
+{ dim:"饮食节律性", q:"饱餐一顿后的深夜突然感到饥饿，你的典型反应是？",
+  realOpts:[
+    {t:"赶紧去找点吃的，饿了就要吃，不能委屈自己。",s:1},
+    {t:"看情况，如果真的很饿就吃一点简单的，比如水果；如果不是特别饿就忍忍。",s:2},
+    {t:"告诉自己睡前进食不健康，稍微喝点水，等第二天再吃想吃的东西。",s:3},
+    {t:"坚决不吃，抵抗住饥饿感是自律的表现。",s:4}
+]},
+
+// 7 饕餮狩猎欲
+{ dim:"饕餮狩猎欲", q:"在确保安全、卫生和符合伦理的前提下，假设以下食材都被做成菜肴摆在你面前。你在尝试哪一类时更不犹豫？",
+  realOpts:[
+    {t:"猪大肠、猪脑这类家禽家畜的特殊部位。",s:1},
+    {t:"蚕蛹等被广泛食用但形态特殊的食材。",s:2},
+    {t:"在西南少数民族文化中常见但其他地方少见的蛋白质来源，例如竹虫、蚂蚁蛋。",s:3},
+    {t:"藻类蛋白主食等基于未来科技或全新理念的食物。",s:4}
+]},
+{ dim:"饕餮狩猎欲", q:"作为美食爱好者，你被邀请来到一个国际美食市集，有四份食物的样品可以试吃，你会选择首先试吃的是？",
+  realOpts:[
+    {t:"外形和饺子相似的食物，馅料除了蔬菜、肉还有奶酪。",s:1},
+    {t:"黑黑的，像圆形吐司切片面包，据卖家介绍是由猪血、燕麦和香料混合制成的香肠。",s:2},
+    {t:"一碗炖菜，里面有鱼和胡萝卜、土豆、芹菜，奶白色的汤汁十分浓稠，似乎是放了奶油。",s:3},
+    {t:"发酵风干后的鲨鱼肉，有人形容味道像消毒水加氨气加海味。",s:4}
+]},
+{ dim:"饕餮狩猎欲", q:"当来到一个陌生城市，而餐饮选择有限的时候，你会怎么做？",
+  realOpts:[
+    {t:"找到最近的肯德基、麦当劳或其他连锁品牌，主打一个没有希望就不会失望。",s:1},
+    {t:"去街边小摊看看，哪种食物看起来不错就尝试下。",s:2},
+    {t:"从大众点评或小红书上面寻找当地有特色的餐厅或推荐的美食榜单，必吃每家的招牌菜。",s:3},
+    {t:"逛菜市场挑选食材，回酒店或民宿自己烹饪，体验本地食材和做法。",s:4}
+]},
+
+// 10 社交饭友力
+{ dim:"社交饭友力", q:"一群朋友聚餐时，餐桌上有一道神秘料理，每个人都只能靠味道猜食材，这时你更可能会怎么做？",
+  realOpts:[
+    {t:"朋友递过来一小口，尝了一下之后点头或摇头，然后就不再吃第二口了。",s:1},
+    {t:"尝了几口，然后对旁边的朋友说：“这口味挺特别的，你觉得呢？”。",s:2},
+    {t:"吃着菜，同时和桌上的人讨论：“这里面好像有蘑菇。”",s:3},
+    {t:"提议：“我们来做猜食材游戏吧，每个人轮流猜里面有什么，谁猜对谁有奖励！”。",s:4}
+]},
+{ dim:"社交饭友力", q:"周末你独自去了一家口碑很不错的餐厅，但需要排队 1 小时。服务员提议：“如果愿意和陌生人拼桌，现在立刻有位子。”这时你会？",
+  realOpts:[
+    {t:"礼貌地表示“我想单独坐”，宁愿多等一小时，也不愿与陌生人共享餐桌。",s:1},
+    {t:"询问对方人数和大致情况，如果是看起来安静的人就同意，如果是热闹的大团体就拒绝，视具体情况而定。",s:2},
+    {t:"可以接受，坐下后简单打个招呼，然后各自吃饭，可能会简单聊下菜品，互不打扰但共享空间。",s:3},
+    {t:"自然地打招呼，聊聊菜品口味或排队经历，如果聊得来就互换联系方式，享受这种偶然的相遇。",s:4}
+]},
+{ dim:"社交饭友力", q:"在餐桌上，当你点的一盘大家都爱吃的菜被端上桌后，你会如何分餐？",
+  realOpts:[
+    {t:"主动说“我们一人几块吧”，或者先把盘子转到自己面前分好。",s:1},
+    {t:"摆上公筷，大家想吃什么夹什么，随意点就好。",s:2},
+    {t:"主动把最好的部分一一夹给朋友们，询问“你要不要这个”，尽可能每个人都照顾到。",s:3},
+    {t:"彼此是非常亲密的朋友/家人，很自然地用手拿取或者用自己的餐具把食物分享给其他人。",s:4}
+]},
+
+// 13 食物想象力
+{ dim:"食物想象力", q:"厨房里油烟升起，你正在炉灶前大展身手做一道你喜欢的菜肴。当尝到熟悉的味道，你感到非常幸福，但这时你突然意识到，这一刻不会永远存在。如果只能用一种方式保存这段记忆和感受，你更倾向于哪种方式？",
+  realOpts:[
+    {t:"把这道菜写成菜谱，随时可以复刻。",s:1},
+    {t:"拍摄视频记录整个做菜的过程。",s:2},
+    {t:"悉心呵护使用的锅具，让它可以保存更久。",s:3},
+    {t:"把这道菜定为每年的固定仪式，约定每年的同一时间重新来做。",s:4}
+]},
+{ dim:"食物想象力", q:"假如“时间”是一道菜，你认为它更像是？",
+  realOpts:[
+    {t:"一锅随着时间的推移越来越香的炖肉。",s:1},
+    {t:"一盘刚出炉只能趁热吃的酥皮点心。",s:2},
+    {t:"一道自己选择食材、每一份都要重新组合的北京烤鸭卷饼或墨西哥塔可（Taco）。",s:3},
+    {t:"一道粤菜“粥底火锅”，先烫食的海鲜、肉类、蔬菜只是过客，融合了所有精华看似平淡的米粥才是灵魂。",s:4}
+]},
+{ dim:"食物想象力", q:"如果未来的餐桌可以随你想象和设计，你会更想要设计什么样的产品？",
+  realOpts:[
+    {t:"可食用的餐具。",s:1},
+    {t:"自动计算营养的碗。",s:2},
+    {t:"根据心率可以改变口味的饮料。",s:3},
+    {t:"一套智能系统，在未来社区的每周聚餐，它可以将大家带来的食材组合成多到新奇菜，等到上桌才知道味道。",s:4}
+]},
+
+// 16 美食哲学家
+{ dim:"美食哲学家", q:"即便不是所有的哲学家都直接讨论过“食物”，但他们关于“人如何存在”的思考，同样适用于如何理解“吃”这件事。下面关于食物的哲学观点，你更认同哪一种？",
+  realOpts:[
+    {t:"人们必须能够生活，才能创造历史。为了生活，首先需要吃喝、住房、衣服以及其他一些东西。",s:1},
+    {t:"人就是他所吃的东西。",s:2},
+    {t:"人通过选择定义自己。食物亦是自由意志的表达。",s:3},
+    {t:"主观性即真理。真正重要的不是食物本身，而是你与它之间的关系。",s:4}
+]},
+{ dim:"美食哲学家", q:"爱做饭的人总是会对厨房格外看重。如果你拥有一个理想的厨房，它更有可能是什么样子？",
+  realOpts:[
+    {t:"厨具和电器分类清晰、摆放整齐，常用工具都在伸手可及的位置。厨房布局非常合理，洗、切、炒可以流水线作业，做饭体验感拉满。",s:1},
+    {t:"橱柜收纳整齐，调味料按顺序排列，冰箱里总是有准备好的食材，每次做饭都可以不慌不忙，不用担心这个调味料没有、那个刚用完了。",s:2},
+    {t:"开放式的厨房，有人靠着聊天，有人帮忙洗菜，有人偷吃刚出锅的食物。做饭的过程总是伴随着吵吵闹闹，饭经常做着做着就变成了聚会。",s:3},
+    {t:"不止是做饭的地方，也是能量补充空间。窗边有一张小桌，阳光会透过玻璃落在木质台面上。水壶在慢慢冒气，你偶尔停下动作，发会儿呆，坐一会儿，或者记下一个刚冒出来的念头。",s:4}
+]},
+{ dim:"美食哲学家", q:"如果明天世界重启，今天是你这一阶段人生的“最后一餐”，你会怎么选？",
+  realOpts:[
+    {t:"秉持“来都来了，别留遗憾”，点最爱吃的食物。",s:1},
+    {t:"留下”我来过的这个世界”的证明，吃妈妈做的菜、小时候味道，和爱的人在一起。",s:2},
+    {t:"选择“把这一刻变成永恒”，去一直很想吃的餐厅，让味蕾记住这个夜晚。",s:3},
+    {t:"到头来才发现“平平淡淡才是真”，选一碗清汤面或者一碗白粥配一点咸菜。",s:4}
+]}
+];
+
+// 修正维度名称：味蕾亲密度 → 胃蕾亲密度
+const dimNames = ["胃蕾亲密度","饮食节律性","饕餮狩猎欲","社交饭友力","食物想象力","美食哲学家"];
+
+const personMap = {
+  "胃蕾亲密度":"味蕾感知者", // 保持人格名称不变
+  "饮食节律性":"节律自律者",
+  "饕餮狩猎欲":"美食探索家",
+  "社交饭友力":"暖心饭友",
+  "食物想象力":"食趣创造者",
+  "美食哲学家":"饮食哲思者"
+};
+
+const personDesc = {
+  "味蕾感知者": {
+    title: "味蕾感知者 · 舌尖上的细腻体验家",
+    desc: "你对味道极其敏感，能轻易分辨食物的层次与差别。吃饭对你来说不只是饱腹，更是一场细腻的感官体验。你懂得欣赏食物本身，也更容易被一顿好饭治愈，是天生懂吃、会吃的人。"
+  },
+  "节律自律者": {
+    title: "节律自律者 · 稳定又克制的饮食高手",
+    desc: "你对饮食有清晰的规则感，不轻易被情绪和诱惑带偏。你懂得平衡口腹之欲与身体节奏，作息与进食都相对稳定，是身边人眼中自律又靠谱的类型，身体也会因这份稳定而更舒服。"
+  },
+  "美食探索家": {
+    title: "美食探索家 · 永远在路上的风味猎人",
+    desc: "你对新鲜食物充满好奇，不怕尝试、不惧陌生，总愿意为一口好吃的奔赴远方。无论是小众料理、奇特食材还是本地特色，你都愿意打开味蕾去体验，人生因食物而多了很多乐趣与惊喜。"
+  },
+  "暖心饭友": {
+    title: "暖心饭友 · 餐桌上的温柔小太阳",
+    desc: "对你来说，吃饭最重要的是氛围与人。你擅长照顾同桌人的感受，懂得分享、会接梗、懂分寸，和你一起吃饭永远轻松又舒服。你用食物连接感情，也用温柔治愈身边的人。"
+  },
+  "食趣创造者": {
+    title: "食趣创造者 · 把日子吃成浪漫与想象",
+    desc: "你不只是在吃饭，更是在创造与感受意义。你会把食物和回忆、仪式、故事绑在一起，擅长从一餐一饭里发现诗意与浪漫，哪怕普通日子，也能被你吃出特别的仪式感。"
+  },
+  "饮食哲思者": {
+    title: "饮食哲思者 · 透过食物看懂生活本质",
+    desc: "你习惯从吃里思考人生，食物对你是镜子，也是修行。你懂得在烟火气里保持清醒，在热闹中守住本心，吃得明白、活得通透，简单一餐，也能吃出人生的滋味。"
+  }
+};
+
+// 调整分数区间：低分(0-3)、中分(4-6)、高分(7-10)
+function getDimDesc(dimName, score) {
+  let level = score >=7 ? "高" : score >=4 ? "中" : "低";
+  let title = "";
+  let text = "";
+
+  if (dimName === "胃蕾亲密度") { // 修正维度名称
+    if (level === "高") {
+      title = "身心同频大师";
+      text = "对饥饿、饱腹、情绪与饮食的关联超敏锐，吃饭专注不敷衍，能精准捕捉身体反馈，不盲从外界饮食标准，每一次进食都能与身体深度对话。";
+    } else if (level === "中") {
+      title = "身体倾听者";
+      text = "多数时候能感知身体需求，但偶尔会因忙碌 / 情绪忽略，饮食态度介于 “刻意关注” 与 “随性对待” 之间，不会过度纠结但也不敷衍。";
+    } else {
+      title = "感官随性者";
+      text = "对饥饿、饱腹等身体信号不够敏感，吃饭时较少关注身体反馈，也不太区分情绪性进食与实际需求，主要凭当下口味或习惯选择食物，饮食状态较为随性。";
+    }
+  } else if (dimName === "饮食节律性") {
+    if (level === "高") {
+      title = "节奏掌控者";
+      text = "饮食有明确且坚定的规律（或明确的 “随性原则”），能完美平衡本能与规则，不暴饮暴食也不刻意压抑，生活节奏稳定，饮食方式高度适配自我状态。";
+    } else if (level === "中") {
+      title = "弹性自律者";
+      text = "大部分时间能保持饮食节奏，但偶尔会因特殊情况（聚会、加班）打破，自律与随性灵活切换，不会因一次打破规则而焦虑。";
+    } else {
+      title = "随性饮食者";
+      text = "没有固定的饮食规律，进食时间、食量会随当天心情、场景随意调整，不刻意遵循秩序，也较少主动关注身体本能的稳定需求，饮食状态更偏向自由无拘。";
+    }
+  } else if (dimName === "饕餮狩猎欲") {
+    if (level === "高") {
+      title = "味觉冒险家";
+      text = "对小众食材、异国料理、奇异食癖接受度极高，主动追寻不同饮食文化，不局限于味觉舒适区，以探索未知风味为乐，包容度拉满。";
+    } else if (level === "中") {
+      title = "适度尝试者";
+      text = "对新鲜食物不排斥，若有机会会尝试，但不会主动刻意追寻，熟悉的口味仍占主导，包容度中等，既不保守也不激进。";
+    } else {
+      title = "味觉守护者";
+      text = "对长期熟悉的食物与口味有深厚偏好，更享受已知风味带来的安全感，饮食选择范围相对集中，对未知料理的尝试意愿不高，偏爱稳定的味觉体验。";
+    }
+  } else if (dimName === "社交饭友力") {
+    if (level === "高") {
+      title = "饮食社交达人";
+      text = "极度重视饮食场景的社交属性，擅长在聚餐中分享互动、调动氛围，同时能精准把握独处与陪伴的边界，归属感需求强，食物是重要的社交纽带。";
+    } else if (level === "中") {
+      title = "随缘社交者";
+      text = "不排斥聚餐，也能享受独自吃饭的宁静，社交对饮食的影响中等，不会为了社交勉强自己吃不喜欢的食物，也不会刻意回避饮食社交。";
+    } else {
+      title = "独处美食家";
+      text = "更享受独自用餐的宁静与自在，饮食场景中更在意自我感受，不需要通过食物联结他人，独自进食时能更好地专注于食物本身，状态更放松舒适。";
+    }
+  } else if (dimName === "食物想象力") {
+    if (level === "高") {
+      title = "脑洞美食家";
+      text = "极致爱混搭、喜创新，彻底不被传统吃法束缚，会主动设计新奇搭配 / 创意摆盘，甚至自创食谱，吃饭充满仪式感与趣味，擅长用食物表达创意。";
+    } else if (level === "中") {
+      title = "偶尔跨界者";
+      text = "不排斥创意料理，偶尔会尝试新搭配、新摆盘，但更偏爱熟悉的吃法，创意感不突出，只会在兴趣来潮时突破常规。";
+    } else {
+      title = "经典爱好者";
+      text = "偏爱传统、固定的食材搭配与吃法，对熟悉的味道有很强的偏好，更享受已知口味带来的安心感，对新奇吃法的尝试意愿较低，饮食风格稳重踏实。";
+    }
+  } else if (dimName === "美食哲学家") {
+    if (level === "高") {
+      title = "食念坚守者";
+      text = "饮食藏着明确的生活态度，极度重视食物背后的意义（文化、环保、手作、在地等），不跟风追网红，有坚定的饮食信念，吃什么就是对生活态度的践行。";
+    } else if (level === "中") {
+      title = "偶尔思考者";
+      text = "有时会关注食物的意义，但更多时候还是以 “好吃、方便” 为核心，精神需求不强烈，既不盲目务实也不刻意追求深度。";
+    } else {
+      title = "务实美食家";
+      text = "更注重饮食的实用性，将 “吃饱吃好、方便适口” 作为核心需求，不刻意赋予食物额外的精神意义，饮食选择简洁直接，专注于口腹的即时满足。";
+    }
+  }
+  return { level, title, text };
+}
+
+// 新增：生成生活建议的函数
+function getLifeTips(maxDim, maxScore, minDim, minScore) {
+  const tips = {
+    "胃蕾亲密度": {
+      high: "你对身体的感知力非常出色，可以尝试偶尔记录饮食后的身体感受（比如饱腹感、情绪变化），让这份敏锐成为调整饮食的最佳参考；也可以多尝试慢食，充分感受食物的每一层味道。",
+      low: "不妨试着在吃饭时暂时放下手机和工作，花3-5分钟专注感受食物的味道和身体的反应，慢慢建立与身体的连接；可以从每天一顿饭的“专注进食”开始，不用急于求成。"
+    },
+    "饮食节律性": {
+      high: "你的饮食自律性很棒，建议偶尔给自己一点“弹性空间”，比如每周留一次“自由饮食时间”，避免过度规则带来的压力，让自律更可持续。",
+      low: "可以尝试从简单的小规则开始建立节律，比如固定早餐时间，或每餐先喝一杯水再进食，不用追求完美，一点点小规律就能让身体更有安全感。"
+    },
+    "饕餮狩猎欲": {
+      high: "你的美食探索欲超棒！尝试探索时可以搭配一点“熟悉的味道”（比如吃新奇料理时配一杯常喝的饮品），既满足探索欲又不会让肠胃不适；也可以记录下喜欢的小众味道，形成专属的美食地图。",
+      low: "可以从“微小尝试”开始拓展味觉边界，比如在常吃的菜里加一种新香料，或尝试同款食材的不同做法，慢慢发现饮食的新鲜感，不用强迫自己接受不喜欢的味道。"
+    },
+    "社交饭友力": {
+      high: "你超会用食物连接感情！偶尔也可以给自己留一点“独处用餐时间”，享受完全按自己喜好吃饭的自在；聚餐时也可以偶尔让朋友主导点餐，体验不同的饮食视角。",
+      low: "如果想尝试饮食社交，可以从“小范围聚餐”开始，比如和1-2个熟悉的朋友分享自己做的简单料理，慢慢感受食物带来的连接感，不用给自己压力。"
+    },
+    "食物想象力": {
+      high: "你的创意超棒！可以尝试把创意落地成“专属仪式”，比如每周做一道自创菜，或给常吃的食物起有趣的名字，让吃饭更有乐趣；也可以和朋友分享你的创意吃法，碰撞更多灵感。",
+      low: "不妨偶尔给自己一点“创意小挑战”，比如用同一种食材做两种不同的吃法，或换一种好看的餐具摆盘，慢慢发现饮食的新鲜感，不用追求复杂，简单的小改变就很好。"
+    },
+    "美食哲学家": {
+      high: "你总能从食物中看见生活，不妨把这些思考偶尔记录下来，比如吃饭时突然想到的小感悟；也可以偶尔“放下思考”，单纯享受食物本身的味道，让身心都放松。",
+      low: "可以尝试在吃饭时问自己一个小问题，比如“这道菜让我想到了什么”，慢慢发现食物背后的小美好，不用刻意追求深度，随心的思考就很有意义。"
+    }
+  };
+
+  // 最高分建议（肯定+小提醒）
+  const maxTip = `✨ 你的${maxDim}维度得分较高（${maxScore}分）：${tips[maxDim].high}`;
+  
+  // 最低分建议（温和引导+小行动）
+  const minTip = `💛 你的${minDim}维度得分稍低（${minScore}分）：${tips[minDim].low}`;
+  
+  // 通用温馨提示
+  const generalTip = "\n\n🌟 温馨小语：饮食没有绝对的“标准答案”，适合自己的就是最好的。无论是坚守自己的饮食节奏，还是偶尔尝试新的方式，只要能让你感到舒服和快乐，就是最棒的选择。";
+  
+  return maxTip + "\n\n" + minTip + generalTip;
+}
+
+// 工具：打乱数组顺序
+function shuffle(arr) {
+  let a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let cur = 0;
+let ans = [];
+let currentShuffled = []; // 当前题打乱后的选项
+const $ = id => document.getElementById(id);
+
+function startTest() {
+  $("page-start").classList.add("hidden");
+  $("page-test").classList.remove("hidden");
+  cur = 0;
+  ans = [];
+  render();
+}
+
+function render() {
+  const q = questions[cur];
+  $("q-num").textContent = cur + 1;
+  $("dim-tag").textContent = q.dim;
+  $("q-text").textContent = q.q;
+  $("progress").style.width = ((cur + 1) / questions.length * 100) + "%";
+
+  // 打乱选项
+  currentShuffled = shuffle(q.realOpts);
+  const box = $("options");
+  box.innerHTML = "";
+
+  currentShuffled.forEach((optItem, i) => {
+    const d = document.createElement("div");
+    d.className = "border border-gray-200 p-3 rounded-xl cursor-pointer hover:border-orange-500 transition";
+    d.textContent = optItem.t;
+    d.onclick = () => {
+      ans[cur] = { dim: q.dim, s: optItem.s };
+      box.querySelectorAll("div").forEach(x => x.classList.remove("border-orange-500"));
+      d.classList.add("border-orange-500");
+      $("btn-next").disabled = false;
+    };
+    box.appendChild(d);
+  });
+
+  // 恢复上一题的选择状态
+  if (ans[cur]) {
+    const selectedIndex = currentShuffled.findIndex(item => item.s === ans[cur].s);
+    if (selectedIndex !== -1) {
+      box.querySelectorAll("div")[selectedIndex].classList.add("border-orange-500");
+      $("btn-next").disabled = false;
+    }
+  }
+
+  $("btn-prev").disabled = cur === 0;
+  $("btn-next").disabled = !ans[cur];
+}
+
+function prev() {
+  if (cur > 0) { 
+    cur--; 
+    render(); 
+  }
+}
+
+function next() {
+  if (cur < questions.length - 1) { 
+    cur++; 
+    render(); 
+  } else { 
+    calcResult(); 
+  }
+}
+
+function calcResult() {
+  // 初始化各维度分数
+  const raw = {};
+  dimNames.forEach(d => raw[d] = []);
+  
+  // 收集所有答题分数
+  ans.forEach(a => {
+    if (a && a.dim && a.s) {
+      raw[a.dim].push(a.s);
+    }
+  });
+  
+  // 计算最终分数（每个维度3题，总分3-12分，转换为1-10分）
+  const final = {};
+  dimNames.forEach(d => {
+    let sum = raw[d].reduce((a, b) => a + b, 0);
+    // 转换公式：(sum - 3) / (12 - 3) * (10 - 1) + 1 = (sum - 3) * 1 + 1 = sum - 2
+    let score = sum - 2;
+    final[d] = Math.round(Math.min(Math.max(score, 1), 10));
+  });
+
+  // 排序获取主人格和次人格
+  const sorted = Object.entries(final).sort((a, b) => b[1] - a[1]);
+  const main = sorted[0][0];
+  const sub = sorted[1][0];
+  
+  // 找到最高分和最低分维度
+  const maxItem = sorted[0];
+  const minItem = sorted[sorted.length - 1];
+  const maxDim = maxItem[0];
+  const maxScore = maxItem[1];
+  const minDim = minItem[0];
+  const minScore = minItem[1];
+  
+  // 先显示结果页，确保DOM元素可见
+  const resultPage = $("page-result");
+  const testPage = $("page-test");
+  
+  // 强制刷新DOM
+  testPage.classList.add("hidden");
+  resultPage.classList.remove("hidden");
+  
+  // 确保DOM完全渲染后再填充内容
+  setTimeout(() => {
+    // 填充人格标签
+    $("p1").textContent = personMap[main];
+    $("p2").textContent = personMap[sub];
+    
+    // 填充主次人格描述（突出显示）
+    const mainDesc = personDesc[personMap[main]];
+    const subDesc = personDesc[personMap[sub]];
+    $("main-desc").innerHTML = `
+      <div class="mb-4 border-l-4 border-orange-500 pl-3">
+        <h3 class="font-bold text-gray-800 text-lg mb-2">${mainDesc.title}</h3>
+        <p class="leading-relaxed text-gray-700">${mainDesc.desc}</p>
+      </div>
+      <div class="border-l-4 border-blue-500 pl-3">
+        <h3 class="font-bold text-gray-800 text-lg mb-2">${subDesc.title}</h3>
+        <p class="leading-relaxed text-gray-700">${subDesc.desc}</p>
+      </div>
+    `;
+
+    // 填充6大维度详细描述（区分主次人格维度）
+    let dimHtml = "";
+    dimNames.forEach(d => {
+      const s = final[d];
+      const dd = getDimDesc(d, s);
+      // 给主次人格维度添加特殊样式标记
+      const isMain = d === main;
+      const isSub = d === sub;
+      const tagClass = isMain ? "bg-orange-100 text-orange-700" : isSub ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700";
+      const borderClass = isMain ? "border-orange-200" : isSub ? "border-blue-200" : "border-gray-100";
+      const bgClass = isMain ? "bg-orange-50/20" : isSub ? "bg-blue-50/20" : "bg-gray-50/50";
+      
+      dimHtml += `
+<div class="p-4 border ${borderClass} rounded-xl ${bgClass}">
+  <div class="flex items-center justify-between mb-2">
+    <span class="font-bold text-gray-800">${d}</span>
+    <span class="text-xs px-2 py-1 rounded-full ${tagClass}">
+      ${isMain ? '主人格' : isSub ? '次人格' : dd.level} · ${s}分
+    </span>
+  </div>
+  <div class="text-sm text-gray-700 font-medium mb-1">${dd.title}</div>
+  <p class="text-gray-600 text-sm leading-relaxed">${dd.text}</p>
+</div>`;
+    });
+    
+    // 确保DOM元素存在再赋值
+    const dimDetailEl = document.getElementById("dim-detail");
+    if (dimDetailEl) {
+      dimDetailEl.innerHTML = dimHtml;
+      console.log("六大维度解析已渲染:", dimHtml);
+    } else {
+      console.error("dim-detail元素未找到");
+    }
+
+    // 填充生活建议模块
+    const lifeTipsEl = document.getElementById("life-tips");
+    if (lifeTipsEl) {
+      lifeTipsEl.textContent = getLifeTips(maxDim, maxScore, minDim, minScore);
+    }
+
+    // 绘制雷达图
+    try {
+      // 销毁已有图表防止重复渲染
+      if (window.radarChart) {
+        window.radarChart.destroy();
+        window.radarChart = null;
+      }
+      
+      // 获取canvas元素并检查
+      const radarCanvas = document.getElementById('radar');
+      if (!radarCanvas) {
+        console.error('Canvas元素不存在');
+        return;
+      }
+      
+      // 获取canvas上下文
+      const ctx = radarCanvas.getContext('2d');
+      if (!ctx) {
+        console.error('无法获取Canvas 2D上下文');
+        return;
+      }
+      
+      // 清空canvas
+      ctx.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
+      
+      // 创建雷达图
+      window.radarChart = new Chart(ctx, {
+        type: "radar",
+        data: {
+          labels: dimNames,
+          datasets: [{
+            label: "你的食物人格维度得分",
+            data: dimNames.map(d => final[d]),
+            backgroundColor: "rgba(249,115,22,0.15)",
+            borderColor: "#f97316",
+            borderWidth: 2,
+            pointBackgroundColor: "#f97316",
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            tension: 0.2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { 
+            r: { 
+              min: 0, 
+              max: 10,
+              ticks: {
+                stepSize: 2,
+                display: true,
+                font: { size: 10 }
+              },
+              grid: {
+                color: "rgba(0,0,0,0.05)"
+              },
+              angleLines: {
+                color: "rgba(0,0,0,0.1)"
+              },
+              pointLabels: {
+                font: {
+                  size: 11,
+                  weight: "500"
+                },
+                color: "#374151",
+                padding: 10
+              }
+            } 
+          },
+          plugins: { 
+            legend: { 
+              display: false 
+            },
+            tooltip: {
+              backgroundColor: "#fff",
+              titleColor: "#333",
+              bodyColor: "#666",
+              borderColor: "#eee",
+              borderWidth: 1,
+              padding: 10,
+              boxPadding: 4,
+              usePointStyle: true
+            }
+          },
+          animation: {
+            duration: 1000,
+            easing: 'easeOutQuart'
+          }
+        }
+      });
+    } catch (e) {
+      console.error('雷达图绘制失败:', e);
+      // 降级处理：显示分数文本
+      const radarContainer = document.querySelector('#radar').parentNode;
+      radarContainer.innerHTML = `
+        <div class="bg-gray-50 p-4 rounded-xl text-left">
+          <h4 class="font-bold text-gray-800 mb-2">你的六大维度得分：</h4>
+          <ul class="space-y-1 text-sm">
+            ${dimNames.map(d => `<li>${d}：${final[d]}分</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+  }, 100); // 延迟100ms确保DOM完全加载
+}
+
+function restart() {
+  cur = 0;
+  ans = [];
+  // 销毁雷达图
+  if (window.radarChart) {
+    window.radarChart.destroy();
+    window.radarChart = null;
+  }
+  $("page-result").classList.add("hidden");
+  $("page-start").classList.remove("hidden");
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('页面加载完成，测试应用已就绪');
+});
+</script>
+</body>
+</html>
